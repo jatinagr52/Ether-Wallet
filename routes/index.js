@@ -22,9 +22,16 @@ router.get('/login', function(req, res, next) {
 });
 
 router.get('/register', function(req, res, next) {
+
   res.render('register');
 });
-
+// router.get('/welcome',function(req,res,next){
+//   var details={
+//     addr:myweb.eth.coinbase,
+//     value:myweb.eth.getBalance(myweb.eth.coinbase)
+//   };
+//   // res.render('details',{det : details});
+// })
 router.post('/register',function(req, res, next){
   //console.log('ok');
   var mywallet = new model({
@@ -123,6 +130,12 @@ console.log(myweb.toWei(req.body.ether,"ether"));
 router.get('/welcome',(req,res,next)=>{
   res.render('welcome');
 });
-
+router.get('/details',(req,res,next)=>{
+  var details={
+    addr:myweb.eth.coinbase,
+    value:myweb.eth.getBalance(myweb.eth.coinbase)
+  };
+  res.render('details',{det:details});
+})
 
 module.exports = router;
