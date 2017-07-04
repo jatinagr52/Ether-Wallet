@@ -1,7 +1,7 @@
 const mongoose=require('mongoose');
 mongoose.Promise=global.Promise;
 
-mongoose.connect('mongodb://localhost:27017/database',(err,out)=>{
+mongoose.connect('mongodb://localhost:27017/mongobase',(err,out)=>{
   if(err)
   {
     console.log('error occurs'+err);
@@ -15,9 +15,10 @@ var schema=mongoose.Schema ;
 var myschema=new schema({
   name : String,
   email: String,
-  password:String
-
+  password:String,
+  address:String,
+  //pass:String,
 });
-var model= mongoose.model('accounts',myschema);
+var model= mongoose.model('register',myschema);
 
 module.exports=model;

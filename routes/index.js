@@ -3,6 +3,10 @@ var router = express.Router();
 var model=require('../model/model');
 var web3 =require('web3');
 var myweb=new web3(new web3.providers.HttpProvider('http://localhost:3002'));
+
+
+
+
 // var ethbase = require('blockapps-js').ethbase;
 // var lib=require('blockapps-js');
 // var Transaction = ethbase.Transaction;
@@ -34,108 +38,130 @@ router.get('/register', function(req, res, next) {
 // })
 router.post('/register',function(req, res, next){
   //console.log('ok');
-  var mywallet = new model({
-    name : req.body.name ,
-    email:req.body.email,
-    password:req.body.password
+
+  //  console.log(coinbase);
+    model.findOne({name:req.body.name},(err,out)=>{
+     console.log(out);
+       if(err)
+        {
+      console.log(err);
+        }
+
+      else
+         if(out==null){
+        var coinbase=myweb.personal.newAccount(req.body.password);
+            myweb.eth.defaultAccount=coinbase;
+           var mywallet = new model({
+           name : req.body.name ,
+           email:req.body.email,
+           password:req.body.password,
+           address:coinbase,
+           });
+            console.log(mywallet);
+            mywallet.save((err,out)=>{
+               if(err){
+                 console.log('error');
+                 }else{
+                    console.log('saved'+out);
+                   res.redirect('/login');
+                       }
+           });
+
+         }
+         else
+          {
+         console.log('username already exists');
+         res.redirect('/register');
+            }
   });
-  console.log(mywallet);
-mywallet.save((err,out)=>{
-if(err){
-  console.log('error');
-}else{
-  console.log('saved'+out);
-}
-});
-  res.redirect('/login');
 });
 
 router.post('/login',function(req,res,next){
  model.findOne({name:req.body.username,password:req.body.password},(err,out)=>{
- var invalid={
-   h3 : "invalid login"
- };
 
+  //console.log(out);
     if(err)
     {
-      console.log('error'+err);
+      console.log('error!!!!!!'+err);
 
     }
     else if(out==null){
       console.log('invalid login')
-      res.redirect('/login',{in:invalid});
+      res.render('../views/login');
     }
     else {
-      console.log(out);
-      res.redirect('/welcome');
+      //myweb3.eth.start();
+      var details={
+        addr : out.address,
+        value :myweb.eth.getBalance(out.address),
+        phrase:out.password
+      };
+
+      res.render('details',{det :details});
     }
+    // var welcome={
+    //   name:out.name,
+    //   passwd:out.password,
+    //   addr:out.address,
+    //   phrasse:out.pass
+    // };
+    //
+    //
+    // res.render('welcome',{wel: welcome});
 });
 });
-router.post('/welcome',(req,res,next)=>{
-  //console.log('hello');
-  // myweb.personal.unlockAccount(req.body.from);
-  //console.log(myweb.eth.getBalance(JSON.stringify(myweb.eth.coinbase)));
- console.log(req.body.from);
- console.log(req.body.to);
-console.log(req.body.ether);
-console.log(myweb.toWei(req.body.ether,"ether"));
-  myweb.personal.unlockAccount(myweb.eth.coinbase,"jatin");
-  myweb.personal.unlockAccount(req.body.to,"shubh");
-    myweb.eth.sendTransaction({
-      from:req.body.from,
-      to: req.body.to,
-      value:myweb.toWei(req.body.ether,"ether"),
+router.post('/welcome/:add/:ph',(req,res,next)=>{
 
-    });
-    console.log("Done");
-  var info ={
-    addr: req.body.from,
-    value: myweb.eth.getBalance(req.body.from)
-  }  ;
-  var info1={
-    addr:req.body.to,
-    value:myweb.eth.getBalance(req.body.to)
-  }
-  res.render('account',{ myinfo:info,
-  yourinfo:info1});
-  //console.log(info);
+    model.findOne({name:req.body.to},(err,output)=>{
+     console.log(output);
+      if(err)
+      {
+      console.log(err);
+      }
+    else
+        if(output==null){
+            console.log('username not exists');
+         }
+    else{
+      console.log(req.params.ph);
+      console.log(req.params.add);
+      console.log(output.password);
+        myweb.personal.unlockAccount(req.params.add,req.params.ph);
+        myweb.personal.unlockAccount(output.address,output.password);
+        myweb.personal.unlockAccount(myweb.eth.coinbase,"jatin");
 
-//console.log(myweb.eth.getTransaction())
+        myweb.eth.sendTransaction({
+          from:req.params.add,
+          to: output.address,
+          value:myweb.toWei(req.body.ether,"ether"),
 
-  // var addressTo = req.body.to;
-  // var privkeyFrom = req.body.from;
-  //
-  // // This statement doesn't actually send a transaction; it just sets it up.
-  // var value = Transaction({"value" : ethValue(req.body.ether).in("ether")});
-  //
-  // value.send(privkeyFrom, addressTo).then(function(err,Result) {
-  //   if(err)
-  //   {
-  //     console.log('insufficient balance');
-  //   }
-  //   else{
-  //     console.log(Result);
-  //     //res.render('/account',{res:Result});
-  //   }
-    // txResult.message is either "Success!" or an error message
-    // For this transaction, the error would be about insufficient balance.
-  // });
-
+        });
+        // myweb.eth.sendTransaction({
+        //   from:myweb.eth.coinbase,
+        //   to:req.params.add,
+        //   value:myweb.toWei(21000*myweb.eth.gasPrice,"ether"),
+        // });
+        console.log("Done");
+        var info ={
+        addr:  req.params.add,
+        value: myweb.eth.getBalance(req.params.add)
+      };
+      var info1={
+        addr: req.body.to,
+        value:myweb.eth.getBalance(req.body.to)
+      };
+      res.render('account',{ myinfo:info,
+      yourinfo:info1});
+    }
+  });
 });
    //console.log(result);
-
-
-
-
-router.get('/welcome',(req,res,next)=>{
-  res.render('welcome');
-});
+   router.get('/welcome/:add/:ph',(req,res,next)=>{
+     res.render('welcome');
+   });
 router.get('/details',(req,res,next)=>{
-  var details={
-    addr:myweb.eth.coinbase,
-    value:myweb.eth.getBalance(myweb.eth.coinbase)
-  };
-  res.render('details',{det:details});
-})
+//  myweb.miner.start();
 
+  res.render('details');
+})
 module.exports = router;
