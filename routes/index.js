@@ -126,9 +126,10 @@ router.post('/welcome/:add/:ph',(req,res,next)=>{
       console.log(req.params.ph);
       console.log(req.params.add);
       console.log(output.password);
+      console.log(output.address);
         myweb.personal.unlockAccount(req.params.add,req.params.ph);
         myweb.personal.unlockAccount(output.address,output.password);
-        myweb.personal.unlockAccount(myweb.eth.coinbase,"jatin");
+        //myweb.personal.unlockAccount(myweb.eth.coinbase,"jatin");
 
         myweb.eth.sendTransaction({
           from:req.params.add,
@@ -136,10 +137,11 @@ router.post('/welcome/:add/:ph',(req,res,next)=>{
           value:myweb.toWei(req.body.ether,"ether"),
 
         });
+        console.log(req.body.ether);
         // myweb.eth.sendTransaction({
         //   from:myweb.eth.coinbase,
         //   to:req.params.add,
-        //   value:myweb.toWei(21000*myweb.eth.gasPrice,"ether"),
+        //   value:myweb.toWei(30000*(myweb.eth.gasPrice),"ether"),
         // });
         console.log("Done");
         var info ={
@@ -147,8 +149,8 @@ router.post('/welcome/:add/:ph',(req,res,next)=>{
         value: myweb.eth.getBalance(req.params.add)
       };
       var info1={
-        addr: req.body.to,
-        value:myweb.eth.getBalance(req.body.to)
+        addr: output.address,
+        value:myweb.eth.getBalance(output.address)
       };
       res.render('account',{ myinfo:info,
       yourinfo:info1});
@@ -159,9 +161,35 @@ router.post('/welcome/:add/:ph',(req,res,next)=>{
    router.get('/welcome/:add/:ph',(req,res,next)=>{
      res.render('welcome');
    });
+
+   router.get('/ether/:add/:ph',(req,res,next)=>{
+  myweb.personal.unlockAccount(myweb.eth.coinbase,"jatin");
+  myweb.personal.unlockAccount(req.params.add,req.params.ph);
+
+     myweb.eth.sendTransaction({
+       from:myweb.eth.coinbase,
+       to:req.params.add,
+       value:myweb.toWei(10,"ether"),
+     });
+     var details={
+       addr:req.params.add,
+       value:myweb.eth.getBalance(req.params.add),
+       phrase:req.params.ph
+     };
+     res.render('details',{det:details});
+   })
 router.get('/details',(req,res,next)=>{
 //  myweb.miner.start();
+  // myweb.eth.sendTransaction({
+  //   from:myweb.eth.coinbase,
+  //   to:req.params.add,
+  //   value:myweb.toWei(10,"ether"),
+  // });
+  // var mine={
+  //   addr:req.params.add,
+  //   value:myweb.eth.getBalance(req.params.add)
+  // };
 
   res.render('details');
-})
+});
 module.exports = router;
